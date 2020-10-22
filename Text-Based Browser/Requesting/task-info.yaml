@@ -1,0 +1,155 @@
+type: edu
+custom_name: stage4
+files:
+- name: browser/browser.py
+  visible: true
+  text: "from sys import argv\nfrom os import mkdir\nfrom _collections import deque\n\
+    \nnytimes_com = '''\nThis New Liquid Is Magnetic, and Mesmerizing\n\nScientists\
+    \ have created “soft” magnets that can flow \nand change shape, and that could\
+    \ be a boon to medicine \nand robotics. (Source: New York Times)\n\n\nMost Wikipedia\
+    \ Profiles Are of Men. This Scientist Is Changing That.\n\nJessica Wade has added\
+    \ nearly 700 Wikipedia biographies for\n important female and minority scientists\
+    \ in less than two \n years.\n\n'''\n\nbloomberg_com = '''\nThe Space Race: From\
+    \ Apollo 11 to Elon Musk\n\nIt's 50 years since the world was gripped by historic\
+    \ images\n of Apollo 11, and Neil Armstrong -- the first man to walk \n on the\
+    \ moon. It was the height of the Cold War, and the charts\n were filled with David\
+    \ Bowie's Space Oddity, and Creedence's \n Bad Moon Rising. The world is a very\
+    \ different place than \n it was 5 decades ago. But how has the space race changed\
+    \ since\n the summer of '69? (Source: Bloomberg)\n\n\nTwitter CEO Jack Dorsey\
+    \ Gives Talk at Apple Headquarters\n\nTwitter and Square Chief Executive Officer\
+    \ Jack Dorsey \n addressed Apple Inc. employees at the iPhone maker’s headquarters\n\
+    \ Tuesday, a signal of the strong ties between the Silicon Valley giants.\n'''\n\
+    \n# write your code here\n\nstack = deque()\ndir_for_tabs = argv[1]\ntry:\n  \
+    \  mkdir(dir_for_tabs)\nexcept FileExistsError:\n    print(f\"Directory {dir_for_tabs}\
+    \ already exists\")\n\nwebsites = {'bloomberg.com': bloomberg_com, 'nytimes.com':\
+    \ nytimes_com}\n\nwhile True:\n    user_input = input()\n    if user_input ==\
+    \ 'exit':\n        break\n    elif user_input ==\"back\":\n        print(stack.popleft())\n\
+    \    elif '.' not in user_input:\n        try:\n            with open(f\"./{dir_for_tabs}/{user_input}\"\
+    , 'r') as f:\n                print(f.read())\n        except FileNotFoundError:\n\
+    \            print(\"Error: Incorrect URL\")\n    else:\n        try:\n      \
+    \      print(websites[user_input])\n            with open(f\"./{dir_for_tabs}/{user_input.split('.')[0]}\"\
+    , 'w') as f:\n                f.write(websites[user_input])\n                stack.append(websites[user_input])\n\
+    \        except KeyError:\n            print(\"Error: Incorrect URL\")\n"
+  learner_created: false
+- name: tests.py
+  visible: false
+  text: |
+    from hstest.stage_test import StageTest
+    from hstest.test_case import TestCase
+    from hstest.check_result import CheckResult
+
+    import os
+    import shutil
+
+    import sys
+    if sys.platform.startswith("win"):
+        import _locale
+        # pylint: disable=protected-access
+        _locale._getdefaultlocale = (lambda *args: ['en_US', 'utf8'])
+
+    CheckResult.correct = lambda: CheckResult(True, '')
+    CheckResult.wrong = lambda feedback: CheckResult(False, feedback)
+
+
+    class TextBasedBrowserTest(StageTest):
+
+        def generate(self):
+
+            dir_for_files = 'tb_tabs'
+            return [
+                TestCase(
+                    stdin='bloomberg.com\nbloomberg\nexit',
+                    attach='Bloomberg',
+                    args=[dir_for_files]
+                ),
+                TestCase(
+                    stdin='nytimes.com\nnytimes\nexit',
+                    attach='The New York Times',
+                    args=[dir_for_files]
+                ),
+                TestCase(
+                    stdin='nytimescom\nexit',
+                    args=[dir_for_files]
+                ),
+                TestCase(
+                    stdin='bloombergcom\nexit',
+                    args=[dir_for_files]
+                ),
+            ]
+
+        def _check_files(self, path_for_tabs: str, right_word: str) -> int:
+            """
+            Helper which checks that browser saves visited url in files and
+            provides access to them.
+
+            :param path_for_tabs: directory which must contain saved tabs
+            :param right_word: Word-marker which must be in right tab
+            :return: True, if right_words is present in saved tab
+            """
+
+            path, dirs, filenames = next(os.walk(path_for_tabs))
+
+            for file in filenames:
+                print("file: {}".format(file))
+                with open(os.path.join(path_for_tabs, file), 'r', encoding='utf-8') as tab:
+                    try:
+                        content = tab.read()
+                    except UnicodeDecodeError:
+                        return -1
+                    print(content)
+                    if 'html' in content and right_word in content:
+                        return 1
+
+            return 0
+
+        def check(self, reply, attach):
+
+            # Incorrect URL
+            if attach is None:
+                if '<p>' in reply:
+                    return CheckResult.wrong('You haven\'t checked whether the URL was correct')
+                else:
+                    return CheckResult.correct()
+
+            # Correct URL
+            if isinstance(attach, str):
+                right_word = attach
+
+                path_for_tabs = os.path.join(os.curdir, 'tb_tabs')
+
+                if not os.path.isdir(path_for_tabs):
+                    return CheckResult.wrong("There are no directory for tabs")
+
+                check_files_result = self._check_files(path_for_tabs, right_word)
+                if not check_files_result:
+                    return CheckResult.wrong('There are no correct saved tabs')
+                elif check_files_result == -1:
+                    return CheckResult.wrong('An error occurred while reading your saved tab. '
+                                             'Perhaps you used the wrong encoding?')
+
+                try:
+                    shutil.rmtree(path_for_tabs)
+                except PermissionError:
+                    return CheckResult.wrong("Impossible to remove the directory for tabs. Perhaps you haven't closed some file?")
+
+                if '<body' in reply and right_word in reply:
+                    return CheckResult.correct()
+
+                return CheckResult.wrong('You haven\'t print result of request')
+
+
+    TextBasedBrowserTest('browser.browser').run_tests()
+  learner_created: false
+- name: browser/dir-for-files/docs.python.org.txt
+  visible: true
+  learner_created: true
+- name: browser/dir-for-files/bloomberg.com.txt
+  visible: true
+  learner_created: true
+feedback_link: https://hyperskill.org/projects/79/stages/439/implement
+status: Solved
+feedback:
+  message: Congratulations! Continue on <a href="https://hyperskill.org/projects/79/stages/439/implement">JetBrains
+    Academy</a>
+  time: Wed, 21 Oct 2020 17:13:03 UTC
+record: 3
