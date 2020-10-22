@@ -5,6 +5,8 @@ import requests
 
 dir_for_tabs = argv[1]
 
+print("Hello world")
+
 try:
     mkdir(dir_for_tabs)
 except FileExistsError:
