@@ -5,8 +5,6 @@ import requests
 
 dir_for_tabs = argv[1]
 
-print("Hello world")
-
 try:
     mkdir(dir_for_tabs)
 except FileExistsError:
@@ -14,16 +12,17 @@ except FileExistsError:
 
 history = deque()
 
-def save_site_content(data, path):
+def save_site_content(data, path,extension):
+
     history.append(path)
-    with open(f"./{dir_for_tabs}/{path+'.html'}", 'w',encoding = 'UTF-8') as f:
+    with open(f"./{dir_for_tabs}/{path+'.'+extension}", 'w',encoding = 'UTF-8') as f:
         f.write(data)
 
-def go_site(site):
+def go_site(site,filename):
     address = site if site.startswith("https://") else f"https://{site}"
-    site_content = requests.get(address).text
-    save_site_content(site_content, site)
-    print(site_content)
+    response = requests.get(address)
+    extension = response.headers['content-type'].split(" ")[0].split("/")[1].replace(";","")
+    save_site_content(response.text, filename,extension)
 
 def go_back():
 
@@ -32,10 +31,10 @@ def go_back():
 
 while True:
     command = input()
-
     if command == 'exit':
         break
     elif command =="back":
         go_back()
     elif '.' in command:
-        go_site(command)
+      filename = input("Enter filename\n")
+      go_site(command,filename)
