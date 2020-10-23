@@ -12,10 +12,10 @@ except FileExistsError:
 
 history = deque()
 
-def save_site_content(data, path,extension):
-
-    history.append(path)
-    with open(f"./{dir_for_tabs}/{path+'.'+extension}", 'w',encoding = 'UTF-8') as f:
+def save_site_content(data, path, extension):
+    filename = path+'.'+extension
+    history.append(filename)
+    with open(f"./{dir_for_tabs}/{filename}", 'w',encoding = 'UTF-8') as f:
         f.write(data)
 
 def go_site(site,filename):
@@ -25,8 +25,7 @@ def go_site(site,filename):
     save_site_content(response.text, filename,extension)
 
 def go_back():
-
-    with open(f"./{dir_for_tabs}/{history.leftpop()+'.html'}", 'r',encoding = 'UTF-8') as f:
+    with open(f"./{dir_for_tabs}/{history.leftpop()}", 'r',encoding = 'UTF-8') as f:
         print(f.read())
 
 while True:
