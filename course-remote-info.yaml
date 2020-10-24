@@ -18,10 +18,10 @@ stages:
   is_completed: true
 - id: 440
   step: 7214
-  is_completed: false
+  is_completed: true
 - id: 441
   step: 7215
-  is_completed: false
+  is_completed: true
 topics:
   0:
   - title: Introduction to Python
