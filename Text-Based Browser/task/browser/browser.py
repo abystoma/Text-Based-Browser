@@ -4,6 +4,8 @@ from collections import deque
 import requests
 from bs4 import BeautifulSoup
 import colorama
+import re
+
 dir_for_tabs = argv[1]
 
 try:
@@ -17,14 +19,14 @@ def parse_html(html_file):
 
     soup = BeautifulSoup(html_file, 'html.parser')
     webpage_text = []
-    tags = soup.find_all(['p', 'title', 'a', 'ul', 'ol', 'il'])
+    tags = soup.find_all(['a','title','ul', 'ol' ,'li','p'])
     for tag in tags:
         if tag.name == 'a':
-            webpage_text.append(colorama.Fore.BLUE + tag.text + '\n')
+            webpage_text.append(colorama.Fore.BLUE + tag.text)
         else:
-            webpage_text.append(colorama.Fore.WHITE + tag.text + '\n')
-
-    return " ".join(webpage_text)
+            webpage_text.append("\t"+colorama.Fore.WHITE + re.sub("\n" ," ",re.sub("\s+\|","|", tag.text).strip()))
+    print(len(webpage_text))
+    return "\n".join(webpage_text)
 
 
 def print_webpage(webpage):
